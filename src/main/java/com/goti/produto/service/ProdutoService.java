@@ -1,7 +1,11 @@
 package com.goti.produto.service;
 
+import com.goti.produto.config.RabbitMQConfig;
+import com.goti.produto.dto.CriarProdutoDTO;
 import com.goti.produto.model.Produto;
+import com.goti.produto.producer.ProdutoProducer;
 import com.goti.produto.repository.ProdutoRepository;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,15 +16,36 @@ import java.util.Optional;
 public class ProdutoService {
 
     private final ProdutoRepository produtoRepository;
+    private final ProdutoProducer produtoProducer;
 
-    public ProdutoService(ProdutoRepository produtoRepository) {
+    public ProdutoService(ProdutoRepository produtoRepository, ProdutoProducer produtoProducer) {
         this.produtoRepository = produtoRepository;
+        this.produtoProducer = produtoProducer;
     }
 
+    // Chamado pelo Controller: fluxo não-bloqueante
+    public void solicitarCriacaoAssincrona(CriarProdutoDTO dto) {
+        produtoProducer.enviarSolicitacaoCriacao(dto);
+    }
+
+    // Consumidor da fila com concorrência gerenciada pelo RabbitMQ
+    @RabbitListener(
+        queues = RabbitMQConfig.FILA_CRIACAO_PRODUTO, 
+        containerFactory = "rabbitListenerContainerFactory"
+    )
     @Transactional
-    public Produto criar(Produto produto) {
-        produto.setId(null); // Garante que o JPA gere o UUID
-        return produtoRepository.save(produto);
+    public void processarCriacaoProduto(CriarProdutoDTO dto) {
+        Produto produto = new Produto();
+        produto.setNome(dto.nome());
+        produto.setDescricao(dto.descricao());
+        produto.setImagem(dto.imagem());
+        produto.setPreco(dto.preco());
+        produto.setEstoque(dto.estoque());
+        produto.setAvaliacao(dto.avaliacao());
+        produto.setAtivo(dto.ativo());
+
+        // Salva com segurança; o prefetchCount e pool de consumers protegem contra picos de concorrência
+        produtoRepository.save(produto);
     }
 
     @Transactional(readOnly = true)

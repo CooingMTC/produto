@@ -9,6 +9,17 @@ import java.util.List;
 @Table(name = "produtos")
 public class Produto {
 
+    @Version
+    private Long versao;
+
+    public Long getVersao() {
+        return versao;
+    }
+
+    public void setVersao(Long versao) {
+        this.versao = versao;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
