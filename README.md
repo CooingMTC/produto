@@ -18,7 +18,7 @@ Microsserviço responsável pelo catálogo de transmissões ao vivo (lives), con
 - **RabbitMQ:** Necessário para o fluxo assíncrono com o microsserviço de vendas. O serviço já está apontado para uma instância AMQP na nuvem (CloudAMQP).
 - **Relacionamento com outros serviços:**
   - Pode subir de forma **independente** para cadastro e visualização de lives.
-  - Para o fluxo completo de compra e reserva de vagas, deve rodar em conjunto com o **`venda-service`**.
+  - Para o fluxo completo de compra e reserva de vagas, deve rodar em conjunto com o [**venda-service**](https://github.com/CooingMTC/venda.git).
 
 ---
 
@@ -33,7 +33,7 @@ Microsserviço responsável pelo catálogo de transmissões ao vivo (lives), con
    ./mvnw clean compile
    ./mvnw spring-boot:run
    ```
-3. A aplicação subirá na porta **`8080`** (ou `8081` caso configurada no seu Gateway).
+3. A aplicação subirá na porta **`8081`**
 
 ---
 
