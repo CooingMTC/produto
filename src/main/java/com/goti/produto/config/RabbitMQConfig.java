@@ -11,24 +11,36 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {
 
-    public static final String PRODUTO_EXCHANGE = "produto.exchange";
-    public static final String FILA_CRIACAO_PRODUTO = "produto.criacao.fila";
-    public static final String ROUTING_KEY_CRIACAO = "produto.comando.criar";
+    public static final String VENDA_EXCHANGE = "venda.exchange";
+    public static final String FILA_SOLICITACAO = "venda.solicitacao.fila";
+    public static final String ROUTING_KEY_SOLICITACAO = "venda.comando.solicitar";
+
+    public static final String FILA_RESPOSTA = "venda.resposta.fila";
+    public static final String ROUTING_KEY_RESPOSTA = "venda.evento.processado";
 
     @Bean
-    public DirectExchange produtoExchange() {
-        return new DirectExchange(PRODUTO_EXCHANGE);
+    public DirectExchange vendaExchange() {
+        return new DirectExchange(VENDA_EXCHANGE);
     }
 
     @Bean
-    public Queue filaCriacaoProduto() {
-        // durable = true garante persistência mesmo se o RabbitMQ reiniciar
-        return QueueBuilder.durable(FILA_CRIACAO_PRODUTO).build();
+    public Queue filaSolicitacao() {
+        return QueueBuilder.durable(FILA_SOLICITACAO).build();
     }
 
     @Bean
-    public Binding bindingCriacao(Queue filaCriacaoProduto, DirectExchange produtoExchange) {
-        return BindingBuilder.bind(filaCriacaoProduto).to(produtoExchange).with(ROUTING_KEY_CRIACAO);
+    public Queue filaResposta() {
+        return QueueBuilder.durable(FILA_RESPOSTA).build();
+    }
+
+    @Bean
+    public Binding bindingSolicitacao(Queue filaSolicitacao, DirectExchange vendaExchange) {
+        return BindingBuilder.bind(filaSolicitacao).to(vendaExchange).with(ROUTING_KEY_SOLICITACAO);
+    }
+
+    @Bean
+    public Binding bindingResposta(Queue filaResposta, DirectExchange vendaExchange) {
+        return BindingBuilder.bind(filaResposta).to(vendaExchange).with(ROUTING_KEY_RESPOSTA);
     }
 
     @Bean
@@ -43,22 +55,18 @@ public class RabbitMQConfig {
         return template;
     }
 
-    // Configuração de concorrência do consumidor
+    // Mantém o pool de concorrência com 3 a 10 workers
     @Bean
     public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(
             ConnectionFactory connectionFactory,
             Jackson2JsonMessageConverter converter) {
-        
+
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
         factory.setMessageConverter(converter);
-        
-        // CENÁRIO DE CONCORRÊNCIA:
-        // Define 3 threads iniciais e no máximo 10 processando a fila ao mesmo tempo
         factory.setConcurrentConsumers(3);
         factory.setMaxConcurrentConsumers(10);
-        factory.setPrefetchCount(1); // Garante distribuição justa entre workers
-        
+        factory.setPrefetchCount(1);
         return factory;
     }
 }

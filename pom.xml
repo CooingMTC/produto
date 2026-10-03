@@ -12,7 +12,7 @@
     <artifactId>produto</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>produto</name>
-    <description>CRUD de Produtos com Spring Boot e H2</description>
+    <description>Sistema de Livestream com Spring Boot, H2 e RabbitMQ</description>
 
     <properties>
         <java.version>21</java.version>
