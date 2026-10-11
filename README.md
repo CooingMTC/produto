@@ -33,7 +33,7 @@ Microsserviço responsável pelo catálogo de transmissões ao vivo (lives), con
    ./mvnw clean compile
    ./mvnw spring-boot:run
    ```
-3. A aplicação subirá na porta **`8081`**
+3. A aplicação subirá na porta **`8082`**
 
 ---
 
